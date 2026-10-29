@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nekudos in-browser tests</title>
+    <link rel="stylesheet" href="../css/app.css" />
+    <style>
+      body { background: #fff; color: #222; font-family: system-ui, sans-serif; padding: 16px; }
+      #results li.pass::marker { content: '✅ '; }
+      #results li.fail::marker { content: '❌ '; }
+      #results li.fail { color: #b3261e; }
+      #stage { position: relative; }
+      .phone { width: 320px; border: 1px dashed #aaa; padding: 8px; background: var(--sky-1); margin: 8px 0; }
+      pre { white-space: pre-wrap; font-size: 12px; }
+      #run { font-size: 20px; padding: 12px 20px; }
+    </style>
+  </head>
+  <body data-font="serif">
+    <h1>In-browser tests</h1>
+    <p>Covers what Node cannot: real font rendering / clipping, IndexedDB + localStorage persistence across a page reload, and real audio playback. Tap the button (audio needs a tap).</p>
+    <button id="run">Run tests</button>
+    <ol id="results"></ol>
+    <p id="summary"></p>
+    <div id="stage"></div>
+    <script type="module" src="browser-tests.js"></script>
+  </body>
+</html>

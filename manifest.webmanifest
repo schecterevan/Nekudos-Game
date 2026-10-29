@@ -1,0 +1,10 @@
+{
+  "name": "Nekudos Stars",
+  "short_name": "Nekudos",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1d2155",
+  "theme_color": "#1d2155",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

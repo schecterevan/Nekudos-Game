@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dress-up Preview</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    /* Preview page for the dress-up prizes. Uses the game's own artwork (js/ui/princess.js). */
+    .stepper-page {
+      gap: 14px;
+      align-items: center;
+    }
+    .stepper-page h1 {
+      margin: 4px 0 0;
+      font-size: 20px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+    .stepper-page .stage {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .stepper-page .stage > * {
+      grid-area: 1 / 1;
+    }
+    .step-name {
+      font-size: 22px;
+      font-weight: 700;
+      min-height: 1.4em;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .step-name small {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.7;
+    }
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 8px;
+    }
+    .stepper button {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: none;
+      font-size: 38px;
+      font-weight: 700;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    .stepper button.add {
+      background: radial-gradient(circle at 35% 30%, #ffe08a, var(--sun) 45%, var(--sun-deep));
+      width: 96px;
+      height: 96px;
+      font-size: 50px;
+    }
+    .stepper button:disabled {
+      opacity: 0.3;
+    }
+    .stepper button:active:not(:disabled) {
+      transform: scale(0.94);
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      max-width: 640px;
+      position: relative;
+      z-index: 1;
+    }
+    .chips button {
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: transparent;
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+    .chips button.got {
+      background: var(--rose);
+      border-color: #fff;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .chips button.current {
+      outline: 3px solid var(--star);
+    }
+    .gift-btn {
+      width: min(44vmin, 240px);
+      height: min(44vmin, 240px);
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { h } from './js/ui/dom.js';
+    import { princessScene, isRiding } from './js/ui/princess.js';
+    import { PRIZES } from './js/content/rewards.js';
+
+    const GIFT = `<svg viewBox="0 0 120 120" aria-hidden="true">
+      <g class="gift-lid"><rect x="12" y="34" width="96" height="22" rx="5" fill="#ff5fa2" stroke="#c23b80" stroke-width="3"/>
+        <rect x="52" y="34" width="16" height="22" fill="#ffe066"/>
+        <path d="M60 34 C 40 8, 22 22, 40 32 Z M60 34 C 80 8, 98 22, 80 32 Z" fill="#ffe066" stroke="#e0a800" stroke-width="3" stroke-linejoin="round"/></g>
+      <rect x="18" y="56" width="84" height="54" rx="5" fill="#ff8cc0" stroke="#c23b80" stroke-width="3"/>
+      <rect x="52" y="56" width="16" height="54" fill="#ffe066"/></svg>`;
+
+    let count = 0;
+    let withGift = false;
+    const stage = h('div', { class: 'stage' });
+    const name = h('div', { class: 'step-name' });
+    const back = h('button', { 'aria-label': 'Remove last', onclick: () => go(count - 1) }, '−');
+    const add = h('button', { class: 'add', 'aria-label': 'Add next', onclick: () => go(count + 1) }, '+');
+    const giftToggle = h('label', { class: 'check' });
+    const giftBox = h('input', { type: 'checkbox' });
+    giftBox.addEventListener('change', () => (withGift = giftBox.checked));
+    giftToggle.append(giftBox, ' Open a present first (like the game)');
+    const chips = h('div', { class: 'chips' });
+
+    function draw(newest) {
+      stage.replaceChildren(princessScene(count, { newest, cls: `end-princess${isRiding(count) && newest !== 'unicorn' ? ' parade' : ''}` }));
+      name.replaceChildren(
+        count === 0 ? 'Plain smiley' : `${count}. ${PRIZES[count - 1].label}`,
+        h('small', {}, count < PRIZES.length ? `Next: ${PRIZES[count].label}` : 'All done!'),
+      );
+      back.disabled = count === 0;
+      add.disabled = count === PRIZES.length;
+      chips.replaceChildren(
+        h('button', { class: count === 0 ? 'current' : '', onclick: () => go(0, true) }, 'Start'),
+        ...PRIZES.map((p, i) =>
+          h('button', { class: `${i < count ? 'got' : ''}${i === count - 1 ? ' current' : ''}`, onclick: () => go(i + 1, true) }, `${i + 1}. ${p.label}`),
+        ),
+      );
+    }
+
+    function go(n, jump = false) {
+      n = Math.max(0, Math.min(PRIZES.length, n));
+      const adding = n === count + 1 && !jump;
+      count = n;
+      if (adding && withGift) {
+        stage.replaceChildren(princessScene(count - 1, { cls: 'end-princess waiting' }));
+        const gift = h('button', { class: 'gift-btn', 'aria-label': 'Open the present', html: GIFT });
+        gift.addEventListener('click', () => {
+          gift.classList.add('opening');
+          setTimeout(() => draw(PRIZES[count - 1].id), 650);
+        }, { once: true });
+        stage.append(gift);
+        name.replaceChildren('Tap the present', h('small', {}, ' '));
+        return;
+      }
+      draw(adding ? PRIZES[count - 1].id : null);
+    }
+
+    document.getElementById('app').append(
+      h('div', { class: 'screen child stepper-page' }, h('h1', {}, 'Princess dress-up'), stage, name, h('div', { class: 'stepper' }, back, add), giftToggle, chips),
+    );
+    go(0);
+  </script>
+</body>
+</html>
